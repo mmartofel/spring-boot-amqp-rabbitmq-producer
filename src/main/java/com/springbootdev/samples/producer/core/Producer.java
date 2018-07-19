@@ -1,0 +1,54 @@
+package com.springbootdev.samples.producer.core;
+
+import com.springbootdev.samples.producer.model.Item;
+import com.springbootdev.samples.producer.model.Order;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+@Component
+public class Producer
+{
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+    private static final Logger LOGGER = LoggerFactory.getLogger(Producer.class);
+
+    @Value("${spring.rabbitmq.template.exchange}")
+    private String EXCHANGE;
+
+    @Value("${spring.rabbitmq.template.routing-key}")
+    private String ROUTING_KEY;
+
+    @Scheduled(fixedRate = 3000)
+    public void produce()
+    {
+        LOGGER.info(" Publishing the Customer Order");
+
+        Order order = this.getOrder();
+        rabbitTemplate.convertAndSend(EXCHANGE, ROUTING_KEY, order);
+    }
+
+
+    private Order getOrder()
+    {
+        List<Item> orderItemList = new ArrayList<>();
+        Item item1 = new Item("Phone", 1);
+        orderItemList.add(item1);
+
+        Item item2 = new Item("SIM", 1);
+        orderItemList.add(item2);
+
+        Item item3 = new Item("Charger", 1);
+        orderItemList.add(item3);
+
+        return new Order("Chathuranga Tennakoon", new Date(), "www.springbootdev.com", orderItemList);
+    }
+}
